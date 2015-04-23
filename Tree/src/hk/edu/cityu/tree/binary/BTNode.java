@@ -166,7 +166,7 @@ public abstract class BTNode<T> implements BinaryTreeNode<T> {
 		this.parent=(BinaryTreeNode<T>) parent;
 	}
 	
-	private static <T> List<BinaryTreeNode<T>> toList(
+	protected static <T> List<BinaryTreeNode<T>> toList(
 			Iterable<? extends BinaryTreeNode<T>> iterator) {
 		List<BinaryTreeNode<T>> list = new LinkedList<>();
 		for (BinaryTreeNode<T> node : iterator)
@@ -174,7 +174,7 @@ public abstract class BTNode<T> implements BinaryTreeNode<T> {
 		return list;
 	}
 
-	public static <T> Iterable<T> toIterableValue(
+	protected static <T> Iterable<T> toIterableValue(
 			Iterable<? extends BinaryTreeNode<T>> iterable) {
 		List<T> list = new LinkedList<>();
 		for (BinaryTreeNode<T> node : iterable)

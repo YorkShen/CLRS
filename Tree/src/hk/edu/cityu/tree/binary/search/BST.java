@@ -3,7 +3,10 @@ package hk.edu.cityu.tree.binary.search;
 import hk.edu.cityu.tree.TreeNode;
 import hk.edu.cityu.tree.binary.BT;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class BST<T extends Comparable<T>> extends BT<T> implements
 		BinarySearchTree<T> {
@@ -50,7 +53,9 @@ public class BST<T extends Comparable<T>> extends BT<T> implements
 
 	@Override
 	public void add(Collection<T> collection) {
-		for (T t : collection)
+		List<T> list=new ArrayList<>(collection);
+		Collections.shuffle(list);
+		for (T t : list)
 			add(t);
 	}
 

@@ -32,7 +32,7 @@ public class RBT<T extends Comparable<T>> extends BST<T> implements
 		node.setColor(COLOR.RED);
 		node.setLeftNode(SentinelNode.getInstance());
 		node.setRightNode(SentinelNode.getInstance());
-		insertFixUp(node);
+		insertFix(node);
 	}
 
 	@Override
@@ -43,56 +43,57 @@ public class RBT<T extends Comparable<T>> extends BST<T> implements
 
 	@Override
 	public void delete(TreeNode<T> treeNode) {
-		// TODO Auto-generated method stub
+		RedBlackTreeNode<T> z = (RedBlackTreeNode<T>) treeNode;
+		RedBlackTreeNode<T> y = (RedBlackTreeNode<T>) treeNode;
+		RedBlackTreeNode<T> x;
+		COLOR yOriginalColor = y.getColor();
+		if (!z.hasLeftNode() || z.getLeftNode() == SentinelNode.getInstance()) {
+			x = z.getRightNode();
+			transplant(z, z.getRightNode());
+		} else if (!z.hasRightNode()
+				|| z.getRightNode() == SentinelNode.getInstance()) {
+			x = z.getLeftNode();
+			transplant(z, z.getLeftNode());
+		} else {
+			y = z.getRightNode().getMin();
+			yOriginalColor = y.getColor();
+			x = y.getRightNode();
+			if (y.getParentNode() == z)
+				x.setParentNode(z);
+			else {
+				transplant(y, y.getRightNode());
+				y.setRightNode(z.getRightNode());
+				y.getRightNode().setParentNode(y);
+			}
+			transplant(z, y);
+			y.setLeftNode(z.getLeftNode());
+			y.getLeftNode().setParentNode(y);
+			y.setColor(z.getColor());
+		}
+		if (yOriginalColor == COLOR.BLACK)
+			deleteFix(x);
 	}
 
-	protected void insertFixUp(RedBlackTreeNode<T> node) {
+	protected void deleteFix(RedBlackTreeNode<T> node) {
+		while (node != getRoot() && node.getColor() != COLOR.BLACK) {
+			if (node == node.getParentNode().getLeftNode()) {
+				node = deleteLeftFix(node);
+			} else {
+				node = deleteRightFix(node);
+			}
+		}
+		node.setColor(COLOR.BLACK);
+	}
+
+	protected void insertFix(RedBlackTreeNode<T> node) {
 		while (node.hasParentNode()
 				&& node.getParentNode().getColor() == COLOR.RED) {
 			if (node.getParentNode().hasParentNode()) {
 				if (node.getParentNode() == node.getParentNode()
 						.getParentNode().getLeftNode()) {
-					RedBlackTreeNode<T> y = node.getParentNode()
-							.getParentNode().getRightNode();
-					if (y.getColor() == COLOR.RED) {
-						node.getParentNode().setColor(COLOR.BLACK);
-						y.setColor(COLOR.BLACK);
-						node.getParentNode().getParentNode()
-								.setColor(COLOR.RED);
-						node = node.getParentNode().getParentNode();
-					} else if (node.getParentNode().getRightNode() == node) {
-						node = node.getParentNode();
-						leftRotate(node);
-					}
-					if (node.hasParentNode()) {
-						node.getParentNode().setColor(COLOR.BLACK);
-						if (node.getParentNode().hasParentNode()) {
-							node.getParentNode().getParentNode()
-									.setColor(COLOR.RED);
-							rightRotate(node.getParentNode().getParentNode());
-						}
-					}
+					node = insertLeftFix(node);
 				} else {
-					RedBlackTreeNode<T> y = node.getParentNode()
-							.getParentNode().getLeftNode();
-					if (y.getColor() == COLOR.RED) {
-						node.getParentNode().setColor(COLOR.BLACK);
-						y.setColor(COLOR.BLACK);
-						node.getParentNode().getParentNode()
-								.setColor(COLOR.RED);
-						node = node.getParentNode().getParentNode();
-					} else if (node.getParentNode().getLeftNode() == node) {
-						node = node.getParentNode();
-						rightRotate(node);
-					}
-					if (node.hasParentNode()) {
-						node.getParentNode().setColor(COLOR.BLACK);
-						if (node.getParentNode().hasParentNode()) {
-							node.getParentNode().getParentNode()
-									.setColor(COLOR.RED);
-							leftRotate(node.getParentNode().getParentNode());
-						}
-					}
+					node = insertRightFix(node);
 				}
 			}
 		}
@@ -141,7 +142,8 @@ public class RBT<T extends Comparable<T>> extends BST<T> implements
 
 	@Override
 	public RedBlackTreeNode<T> getSuccessor(BinarySearchTreeNode<T> node) {
-		if (node.hasRightNode()&&node.getRightNode()!=SentinelNode.getInstance())
+		if (node.hasRightNode()
+				&& node.getRightNode() != SentinelNode.getInstance())
 			return (RedBlackTreeNode<T>) node.getRightNode().getMin();
 		else {
 			BinarySearchTreeNode<T> p = node.getParentNode();
@@ -155,7 +157,8 @@ public class RBT<T extends Comparable<T>> extends BST<T> implements
 
 	@Override
 	public RedBlackTreeNode<T> getPrecessor(BinarySearchTreeNode<T> node) {
-		if (node.hasLeftNode()&&node.getLeftNode()!=SentinelNode.getInstance())
+		if (node.hasLeftNode()
+				&& node.getLeftNode() != SentinelNode.getInstance())
 			return (RedBlackTreeNode<T>) node.getLeftNode().getMax();
 		else {
 			BinarySearchTreeNode<T> p = node.getParentNode();
@@ -170,5 +173,103 @@ public class RBT<T extends Comparable<T>> extends BST<T> implements
 	@Override
 	public RedBlackTreeNode<T> getRoot() {
 		return (RedBlackTreeNode<T>) super.getRoot();
+	}
+
+	private RedBlackTreeNode<T> insertRightFix(RedBlackTreeNode<T> node) {
+		RedBlackTreeNode<T> y = node.getParentNode().getParentNode()
+				.getLeftNode();
+		if (y.getColor() == COLOR.RED) {
+			node.getParentNode().setColor(COLOR.BLACK);
+			y.setColor(COLOR.BLACK);
+			node.getParentNode().getParentNode().setColor(COLOR.RED);
+			node = node.getParentNode().getParentNode();
+		} else if (node.getParentNode().getLeftNode() == node) {
+			node = node.getParentNode();
+			rightRotate(node);
+		}
+		if (node.hasParentNode()) {
+			node.getParentNode().setColor(COLOR.BLACK);
+			if (node.getParentNode().hasParentNode()) {
+				node.getParentNode().getParentNode().setColor(COLOR.RED);
+				leftRotate(node.getParentNode().getParentNode());
+			}
+		}
+		return node;
+	}
+
+	private RedBlackTreeNode<T> insertLeftFix(RedBlackTreeNode<T> node) {
+		RedBlackTreeNode<T> y = node.getParentNode().getParentNode()
+				.getRightNode();
+		if (y.getColor() == COLOR.RED) {
+			node.getParentNode().setColor(COLOR.BLACK);
+			y.setColor(COLOR.BLACK);
+			node.getParentNode().getParentNode().setColor(COLOR.RED);
+			node = node.getParentNode().getParentNode();
+		} else if (node.getParentNode().getRightNode() == node) {
+			node = node.getParentNode();
+			leftRotate(node);
+		}
+		if (node.hasParentNode()) {
+			node.getParentNode().setColor(COLOR.BLACK);
+			if (node.getParentNode().hasParentNode()) {
+				node.getParentNode().getParentNode().setColor(COLOR.RED);
+				rightRotate(node.getParentNode().getParentNode());
+			}
+		}
+		return node;
+	}
+
+	private RedBlackTreeNode<T> deleteLeftFix(RedBlackTreeNode<T> node) {
+		RedBlackTreeNode<T> w = node.getParentNode().getRightNode();
+		if (w.getColor() == COLOR.RED) {
+			w.setColor(COLOR.BLACK);
+			node.getParentNode().setColor(COLOR.RED);
+			leftRotate(node.getParentNode());
+			w = node.getParentNode().getRightNode();
+		}
+		if (w.getLeftNode().getColor() == COLOR.BLACK
+				&& w.getRightNode().getColor() == COLOR.BLACK) {
+			w.setColor(COLOR.RED);
+			node = node.getParentNode();
+		} else if (w.getRightNode().getColor() == COLOR.BLACK) {
+			w.getLeftNode().setColor(COLOR.BLACK);
+			w.setColor(COLOR.RED);
+			rightRotate(w);
+			w = node.getParentNode().getRightNode();
+		}
+		w.setColor(w.getParentNode().getColor());
+		node.getParentNode().setColor(COLOR.BLACK);
+		if (w.getRightNode() != SentinelNode.getInstance())
+			w.getRightNode().setColor(COLOR.BLACK);
+		leftRotate(node.getParentNode());
+		node = getRoot();
+		return node;
+	}
+
+	private RedBlackTreeNode<T> deleteRightFix(RedBlackTreeNode<T> node) {
+		RedBlackTreeNode<T> w = node.getParentNode().getLeftNode();
+		if (w.getColor() == COLOR.RED) {
+			w.setColor(COLOR.BLACK);
+			node.getParentNode().setColor(COLOR.RED);
+			rightRotate(node.getParentNode());
+			w = node.getParentNode().getLeftNode();
+		}
+		if (w.getRightNode().getColor() == COLOR.BLACK
+				&& w.getLeftNode().getColor() == COLOR.BLACK) {
+			w.setColor(COLOR.RED);
+			node = node.getParentNode();
+		} else if (w.getLeftNode().getColor() == COLOR.BLACK) {
+			w.getRightNode().setColor(COLOR.BLACK);
+			w.setColor(COLOR.RED);
+			leftRotate(w);
+			w = node.getParentNode().getLeftNode();
+		}
+		w.setColor(w.getParentNode().getColor());
+		node.getParentNode().setColor(COLOR.BLACK);
+		if (w.getLeftNode() != SentinelNode.getInstance())
+			w.getLeftNode().setColor(COLOR.BLACK);
+		rightRotate(node.getParentNode());
+		node = getRoot();
+		return node;
 	}
 }

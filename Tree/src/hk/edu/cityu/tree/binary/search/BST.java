@@ -20,7 +20,7 @@ public class BST<T extends Comparable<T>> extends BT<T> implements
 			transplant(node, node.getLeftNode());
 		else {
 			BinarySearchTreeNode<T> inserted = node.getRightNode().getMin();
-			if (inserted != node.getRightNode()) {
+			if (inserted.getParentNode() != node) {
 				transplant(inserted, inserted.getRightNode());
 				inserted.setRightNode(node.getRightNode());
 				node.getRightNode().setParentNode(inserted);
